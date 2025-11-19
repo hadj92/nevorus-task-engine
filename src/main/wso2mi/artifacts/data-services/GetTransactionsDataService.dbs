@@ -1,0 +1,22 @@
+<data name="GetTransactionsDataService" serviceNamespace="" serviceGroup="" transports="http https"       disableStreaming="true">
+  <description/>
+  <config id="TRANSACTION_DB" >
+    <property name="driverClassName">org.postgresql.Driver</property>
+    <property name="url">jdbc:postgresql://ec2-35-181-59-209.eu-west-3.compute.amazonaws.com:5432/transaction_db</property>
+    <property name="username">nevorus</property>
+    <property name="password">nevorus2024</property>
+  </config>
+  <query id="GetInitiatedTransactionsQuery" useConfig="TRANSACTION_DB">
+        <sql>SELECT external_transaction_id, partner_order_id FROM payment_transaction_entity WHERE status = 'initiated' OR status = 'processing'</sql>
+        <result element="Transactions" rowName="Transaction">
+            <element column="external_transaction_id" name="orderId" xsdType="string"/>
+            <element column="partner_order_id" name="partnerId" xsdType="string"/>
+        </result>
+    </query>
+    <operation name="getInitiatedTransactions">
+        <call-query href="GetInitiatedTransactionsQuery"/>
+    </operation>
+    <resource method="GET" path="initiated-transactions">
+        <call-query href="GetInitiatedTransactionsQuery"/>
+    </resource>
+</data>

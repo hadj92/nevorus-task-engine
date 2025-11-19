@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<api context="/transactions" name="GetInitiatedTransactionsAPI" xmlns="http://ws.apache.org/ns/synapse">
+    <resource methods="POST" uri-template="/initiated">
+        <inSequence>
+            <payloadFactory media-type="xml">
+                <format>
+                    <soapenv:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:reg="http://om.btow.com/register">
+                        <soapenv:Header/>
+                        <soapenv:Body>
+                            <reg:ombRequest soapenv:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+                                <msisdn xsi:type="xsd:string">7702100003</msisdn>
+                                <alias xsi:type="xsd:string">BNKSXGWE25486357988519</alias>
+                                <code_service xsi:type="xsd:short">3</code_service>
+                                <libelle xsi:type="xsd:string">perso</libelle>
+                                <devise xsi:type="xsd:string">952</devise>
+                                <key xsi:type="xsd:string">CRLZ18GI</key>
+                                <active_date xsi:type="xsd:dateTime">2025-10-27 19:15:22</active_date>
+                            </reg:ombRequest>
+                        </soapenv:Body>
+                    </soapenv:Envelope>
+                </format>
+            </payloadFactory>
+            
+            <header name="Action" scope="default" value="urn:#doRegister"/>
+            
+            <call>
+                <endpoint>
+                    <address uri="https://sandbox.orange-money.com/b2wg4/register?bic=BNKSXFGQ" format="soap11"/>
+                </endpoint>
+            </call>
+            
+            <respond/>
+        </inSequence>
+        <faultSequence>
+            <log category="ERROR">
+                <message>Error retrieving initiated transactions: ${props.synapse.ERROR_MESSAGE}</message>
+            </log>
+            <respond/>
+        </faultSequence>
+    </resource>
+</api>

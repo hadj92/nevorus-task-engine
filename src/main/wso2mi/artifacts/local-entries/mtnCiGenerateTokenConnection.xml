@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="mtnCiGenerateTokenConnection" xmlns="http://ws.apache.org/ns/synapse">
+  <http.init>
+    <connectionType>HTTPS</connectionType>
+    <baseUrl>https://sandbox.momodeveloper.mtn.com</baseUrl>
+    <authType>Basic Auth</authType>
+    <username>297323f1-9b7c-4956-96f5-dfec10a0a844</username>
+    <password>892f230abd5d48fa9fba150b7adb67ea</password>
+    <timeoutAction>Never</timeoutAction>
+    <retryCount>0</retryCount>
+    <retryDelay>0</retryDelay>
+    <suspendInitialDuration>-1</suspendInitialDuration>
+    <suspendProgressionFactor>1</suspendProgressionFactor>
+    <name>mtnCiGenerateTokenConnection</name>
+  </http.init>
+</localEntry>

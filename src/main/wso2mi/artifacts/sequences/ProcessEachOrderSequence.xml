@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="ProcessEachOrderSequence" xmlns="http://ws.apache.org/ns/synapse">
+    
+    <!-- Split the comma-separated string into an array -->
+
+    <variable name="transactions" expression="${payload.Transactions.Transaction}" type="JSON"/>
+
+    <log category="INFO">
+        <message>Processing ${vars.transactions} </message>
+    </log>
+    
+
+    <sequence key="GenerateMtnAccessToken"/>
+    <variable name="token" type="STRING" expression="${vars.accessToken}" />
+
+    <!-- Iterate through each order ID -->
+    <foreach collection="${vars.transactions}" parallel-execution="true" update-original="true" continue-without-aggregation="false">
+        <sequence>
+            <variable name="currentOrderId" expression="${payload.orderId}" type="STRING"/>
+            <variable name="partnerId" expression="${payload.partnerId}" type="STRING"/>
+            <log category="INFO">
+                <message>Processing order: ${vars.currentOrderId}</message>
+            </log>
+            <http.get configKey="MtnMomoConnection">
+                <relativePath>/collection/v2_0/payment/${vars.currentOrderId}</relativePath>
+                <headers>[{"X-Target-Environment":"sandbox"}, {"Ocp-Apim-Subscription-Key":"1ec37570ad7a46329e66d6bf7e207299"}, {"Authorization":"Bearer ${vars.token}"}]</headers>
+                <forceScAccepted>false</forceScAccepted>
+                <disableChunking>false</disableChunking>
+                <forceHttp10>false</forceHttp10>
+                <noKeepAlive>false</noKeepAlive>
+                <responseVariable>paymentStatusResponse</responseVariable>
+                <overwriteBody>true</overwriteBody>
+            </http.get>
+
+            <log category="INFO" logMessageID="false" logFullPayload="false">
+                <message>Order status Response: ${payload}</message>
+            </log>
+
+            
+
+            <filter xpath="${vars.paymentStatusResponse.attributes.statusCode == 200}">
+
+                <variable name="upTodatePaymentStatus" type="STRING" expression="${payload.status}" />
+
+                <log category="INFO">
+                    <message>Up to date payment status for order ${vars.currentOrderId} is: ${vars.upTodatePaymentStatus}</message>
+                </log>
+
+                <then>
+                    <log category="INFO">
+                        <message>Successfully retrieved status for order: ${vars.currentOrderId}</message>
+                    </log>
+                    <filter description="Branches messages based on payment status being SUCCESSFUL or PENDING." xpath="${vars.upTodatePaymentStatus == 'SUCCESSFUL' or vars.upTodatePaymentStatus == 'PENDING'}">
+                        <then>
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                    "southId": "${vars.currentOrderId}",
+                                    "partnerId": "${vars.partnerId}",
+                                    "status": "${vars.upTodatePaymentStatus}"
+                                    }
+                                </format>
+                            </payloadFactory>
+                        </then>
+                        <else>
+                            <payloadFactory media-type="json">
+                                <format>
+                                    {
+                                    "southId": "${vars.currentOrderId}",
+                                    "partnerId": "${vars.partnerId}",
+                                    "status": "${payload.status}",
+                                    "error": {
+                                    "code": "${payload.reason}",
+                                    "message": "${payload.reason}"
+                                    }
+                                    }
+                                </format>
+                            </payloadFactory>
+                        </else>
+                    </filter>
+                    
+                    <log category="INFO">
+                        <message>Sending payment payload for update status: ${payload}</message>
+                    </log>
+                    <kafkaTransport.publishMessages configKey="openpay-brokers">
+                        <topic>topic-payment-finalized-out-0</topic>
+                        <partitionNo>0</partitionNo>
+                        <key></key>
+                        <keySchema></keySchema>
+                        <keySchemaId></keySchemaId>
+                        <keySchemaMetadata></keySchemaMetadata>
+                        <valueSchema></valueSchema>
+                        <valueSchemaId></valueSchemaId>
+                        <keySchemaSubject></keySchemaSubject>
+                        <keySchemaVersion></keySchemaVersion>
+                        <keySchemaSoftDeleted>false</keySchemaSoftDeleted>
+                        <valueSchemaSubject></valueSchemaSubject>
+                        <valueSchemaVersion></valueSchemaVersion>
+                        <valueSchemaMetadata></valueSchemaMetadata>
+                        <valueSchemaSoftDeleted>false</valueSchemaSoftDeleted>
+                        <value>{${payload}}</value>
+                        <forwardExistingHeaders>None</forwardExistingHeaders>
+                        <customHeaders>[]</customHeaders>
+                        <customHeaderExpression></customHeaderExpression>
+                    </kafkaTransport.publishMessages>
+
+
+                    <log category="INFO">
+                        <message>Sent successfuly : ${payload}</message>
+                    </log>
+                </then>
+                <else>
+                    
+                    <log category="WARN">
+                        <message>RESOURCE_NOT_FOUND - Order not found: ${payload} ---- ${vars.paymentStatusResponse.attributes.statusCode}</message>
+                    </log>
+                
+                <!-- <filter xpath="${vars.paymentStatusResponse.attributes.statusCode == 404 or vars.paymentStatusResponse.attributes.statusCode == 400}">
+                    <then> -->
+                        <payloadFactory media-type="json">
+                        <format>
+                            {
+                            "southId": "${vars.currentOrderId}",
+                            "partnerId": "${vars.partnerId}",
+                            "status": "FAILED",
+                            "error": {
+                                "code": "${payload.code}",
+                                "message": "${payload.code}"
+                            }
+                            }
+                        </format>
+                    </payloadFactory>
+                    <kafkaTransport.publishMessages configKey="openpay-brokers">
+                        <topic>topic-payment-finalized-out-0</topic>
+                        <partitionNo>0</partitionNo>
+                        <key></key>
+                        <keySchema></keySchema>
+                        <keySchemaId></keySchemaId>
+                        <keySchemaMetadata></keySchemaMetadata>
+                        <valueSchema></valueSchema>
+                        <valueSchemaId></valueSchemaId>
+                        <keySchemaSubject></keySchemaSubject>
+                        <keySchemaVersion></keySchemaVersion>
+                        <keySchemaSoftDeleted>false</keySchemaSoftDeleted>
+                        <valueSchemaSubject></valueSchemaSubject>
+                        <valueSchemaVersion></valueSchemaVersion>
+                        <valueSchemaMetadata></valueSchemaMetadata>
+                        <valueSchemaSoftDeleted>false</valueSchemaSoftDeleted>
+                        <value>{${payload}}</value>
+                        <forwardExistingHeaders>None</forwardExistingHeaders>
+                        <customHeaders>[]</customHeaders>
+                        <customHeaderExpression></customHeaderExpression>
+                    </kafkaTransport.publishMessages>
+            <!--         </then>
+                </filter> -->
+                    
+                    <log category="WARN">
+                        <message>Failed to retrieve status for order: ${vars.currentOrderId}</message>
+                    </log>
+                </else>
+            </filter>
+        </sequence>
+    </foreach>
+</sequence>

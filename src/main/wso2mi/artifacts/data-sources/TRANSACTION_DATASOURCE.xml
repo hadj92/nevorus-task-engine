@@ -1,0 +1,11 @@
+<datasource>
+    <name>TRANSACTION_DATASOURCE</name>
+    <definition type="RDBMS">
+        <configuration>
+            <driverClassName>org.postgresql.Driver</driverClassName>
+            <url>jdbc:postgresql://ec2-35-181-59-209.eu-west-3.compute.amazonaws.com:5432/transaction_db</url>
+            <username>nevorus</username>
+            <password>nevorus2024</password>
+        </configuration>
+    </definition>
+</datasource>

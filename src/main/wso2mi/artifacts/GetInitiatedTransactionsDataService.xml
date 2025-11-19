@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<data name="GetInitiatedTransactionsDataService" transports="http https local" xmlns="http://ws.apache.org/ns/synapse">
+    <config enableOData="false" id="PostgresDB">
+        <property name="driverClassName">org.postgresql.Driver</property>
+        <property name="url">jdbc:postgresql://ec2-35-181-59-209.eu-west-3.compute.amazonaws.com:5432/transaction_db</property>
+        <property name="username">nevorus</property>
+        <property name="password">nevorus</property>
+    </config>
+    <query id="GetInitiatedTransactionsQuery" useConfig="PostgresDB">
+        <sql>SELECT * FROM payment_transaction_entity WHERE status = 'initiated'</sql>
+        <result element="Transactions" rowName="Transaction">
+            <element column="order_id" name="orderId" xsdType="string"/>
+            <element column="status" name="status" xsdType="string"/>
+            <element column="amount" name="amount" xsdType="string"/>
+            <element column="created_at" name="createdAt" xsdType="string"/>
+        </result>
+    </query>
+    <operation name="getInitiatedTransactions">
+        <call-query href="GetInitiatedTransactionsQuery"/>
+    </operation>
+    <resource method="GET" path="initiated-transactions">
+        <call-query href="GetInitiatedTransactionsQuery"/>
+    </resource>
+</data>

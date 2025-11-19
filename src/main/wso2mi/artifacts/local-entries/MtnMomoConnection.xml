@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="MtnMomoConnection" xmlns="http://ws.apache.org/ns/synapse">
+    <http.init>
+        <connectionType>https</connectionType>
+        <baseUrl>https://sandbox.momodeveloper.mtn.com</baseUrl>
+        <name>MtnMomoConnection</name>
+    </http.init>
+</localEntry>

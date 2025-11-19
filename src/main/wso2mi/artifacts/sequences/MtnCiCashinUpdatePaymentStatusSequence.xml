@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sequence name="MtnCiCashinUpdatePaymentStatusSequence" trace="disable" xmlns="http://ws.apache.org/ns/synapse">
+    
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>############# Calling data service #############</message>
+    </log>
+    <dataServiceCall description="Invokes GetTransactionsDataService to retrieve transactions for the specified account" serviceName="GetTransactionsDataService">
+        <operations type="single">
+            <operation name="getInitiatedTransactions">
+                <!-- <param name="orderId" value="orderId"/> -->
+            </operation>
+        </operations>
+        <source type="inline"/>
+        <target type="body"/>
+    </dataServiceCall>
+
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>############# End calling data service #############</message>
+    </log>
+    <!--     <variable name="rst" type="JSON" expression="${payload}"/> -->
+    <log category="INFO" logMessageID="false" logFullPayload="false">
+        <message>${payload.Transactions.Transaction}</message>
+    </log>
+
+    <sequence key="ProcessEachOrderSequence"/>
+    
+</sequence>

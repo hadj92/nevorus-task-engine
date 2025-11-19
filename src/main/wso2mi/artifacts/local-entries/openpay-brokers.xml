@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<localEntry key="openpay-brokers" xmlns="http://ws.apache.org/ns/synapse">
+  <kafkaTransport.init>
+    <connectionType>KAFKA</connectionType>
+    <bootstrapServers>35.181.59.209:9091,35.181.59.209:9092,35.181.59.209:9093</bootstrapServers>
+    <keySerializerClass>org.apache.kafka.common.serialization.StringSerializer</keySerializerClass>
+    <valueSerializerClass>org.apache.kafka.common.serialization.StringSerializer</valueSerializerClass>
+    <poolingEnabled>false</poolingEnabled>
+    <name>openpay-brokers</name>
+  </kafkaTransport.init>
+</localEntry>
